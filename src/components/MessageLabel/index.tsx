@@ -1,5 +1,5 @@
-import React, { useRef, useImperativeHandle } from "react";
-import { View, Text } from "react-native";
+import React, { useRef, useImperativeHandle, useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import styles from "./styles";
 import { useAuth } from "../../contexts/auth";
@@ -9,21 +9,23 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import EmojiReactions from "../EmojiReactions";
+import OptionsReactions from "../OptionsReactions";
 
 interface IMessageLabel {
   message: string;
-  senderId: string;
+  sendedBy: string;
+  onAnswerPress: () => void;
 }
 
 export interface IMessageLabelRefProps {}
 
 const MessageLabel = React.forwardRef<IMessageLabelRefProps, IMessageLabel>(
-  ({ message, senderId }, ref) => {
-    const messageLabelRef = useRef();
+  ({ message, sendedBy, onAnswerPress }, ref) => {
     const { userName } = useAuth();
     const translateX = useSharedValue(0);
     const context = useSharedValue({ y: 0 });
-    //   console.log(senderId, "SENDERID", userName.id, "USERNAMEID");
+    const [reactions, setReactions] = useState(false);
 
     const gesture = Gesture.Pan()
       .onStart((e) => {
@@ -34,12 +36,7 @@ const MessageLabel = React.forwardRef<IMessageLabelRefProps, IMessageLabel>(
       })
       .onEnd(() => {
         translateX.value = withTiming(0);
-      })
-      .withRef(messageLabelRef);
-
-    useImperativeHandle(ref, () => ({}), []);
-
-    const composed = Gesture.Simultaneous(gesture);
+      });
 
     const rMessageLabelStyle = useAnimatedStyle(() => {
       return {
@@ -48,22 +45,40 @@ const MessageLabel = React.forwardRef<IMessageLabelRefProps, IMessageLabel>(
     });
 
     return (
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={[
-            styles.container,
-            rMessageLabelStyle,
-            {
-              backgroundColor: senderId === userName.id ? "#f74ac6" : "white",
-              alignSelf: senderId === userName.id ? "flex-end" : "flex-start",
-            },
-          ]}
-        >
-          <Text style={{ color: senderId === userName.id ? "white" : "black" }}>
-            {message}
-          </Text>
-        </Animated.View>
-      </GestureDetector>
+      <>
+        {reactions && <EmojiReactions />}
+        <GestureDetector gesture={gesture}>
+          <TouchableOpacity
+            style={styles.container}
+            activeOpacity={1}
+            onLongPress={() => setReactions(true)}
+            onPress={() => setReactions(false)}
+          >
+            <Animated.View
+              style={[
+                styles.content,
+                rMessageLabelStyle,
+                {
+                  backgroundColor:
+                    sendedBy === userName.id ? "#4A86F7" : "white",
+                  alignSelf:
+                    sendedBy === userName.id ? "flex-end" : "flex-start",
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: sendedBy === userName.id ? "white" : "black",
+                  fontSize: 16,
+                }}
+              >
+                {message}
+              </Text>
+            </Animated.View>
+          </TouchableOpacity>
+        </GestureDetector>
+        {reactions && <OptionsReactions onAnswerPress={onAnswerPress} />}
+      </>
     );
   }
 );

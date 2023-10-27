@@ -1,24 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
-  Text,
-  View,
 } from "react-native";
-import Header from "./src/components/Header";
 import socket from "./src/Hooks/useSocket";
-import MessageInput from "./src/components/MessageInput";
 import Routes from "./src/Routes";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthProvider from "./src/contexts/auth";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const App: React.FC = () => {
-  const inputRef = useRef({ value: "" });
-  const [state, setState] = useState<string[]>([]);
-
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
